@@ -10,9 +10,66 @@
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros  
 
 
+void orders_st(int st)
+{
+
+}
+
+void trade_st(int st, int user_id)
+{
+
+}
+
+void sell_order(char * t, int user_id)
+{
+
+}
+
+void buy_order(char * t, int user_id)
+{
+
+}
+
+int search_index(char buffer[])
+{
+    for(int i=0;i<1024;i++)
+    {
+        if(buffer[i]==':')
+            return i;
+    } 
+
+    return 1024;
+}
 
   
-     
+
+  
+int auth(char* logindetails)
+{
+    //The login details are stored in a file login.txt line by line.So we are given logindetails in format username:passwd we open file and
+    //each line by comparing with logindetails and simultaneoulsy increment the index i for each mismatch.When match found retrn the index i
+
+    FILE *fp=fopen("login.txt","r");
+    char *dataToBeRead; dataToBeRead = (char*) malloc(64*sizeof(char));
+    int i=0;int f=0;
+    if ( fp != NULL ) 
+    {  
+    
+    while(fscanf(fp,"%s\n",dataToBeRead) != EOF) 
+    { i++;
+       if(strcmp(logindetails,dataToBeRead)==0)
+            {f=1;break;}
+    } 
+      
+    fclose(fp);
+    }
+    else
+    {
+        printf("Login File not exitsing\n");
+    }
+    if(f) return i;
+    return 0;
+}   
 int main(int argc , char *argv[])   
 {   
     if(argc!=2){
@@ -178,14 +235,14 @@ int main(int argc , char *argv[])
                 if(value_read != 0)   
                 {   
                     char *index=(char *)malloc(1025*sizeof(char));
-                    strcpy(in,buffer);
+                    strcpy(index,buffer);
                     memset(buffer,0,1025);
                     int size=search_index(index);
                     if(size<1024) index[size]='\0';
                     printf("USER ID %d Client number %d Message Received %s\n",user_id[i],i,index );
                     //String before # indicates  the function that the client wants to use
                     char* temp=strtok(index,"#"); 
-                    char fun= (*temp);
+                    char t= (*temp);
                     if (t=='L')
                     {
                     	temp=strtok(NULL,"#");
