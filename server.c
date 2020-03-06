@@ -7,7 +7,11 @@
 #include <sys/types.h>  
 #include <sys/socket.h>  
 #include <netinet/in.h>  
-#include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros    
+#include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros  
+
+
+
+  
      
 int main(int argc , char *argv[])   
 {   
@@ -173,27 +177,81 @@ int main(int argc , char *argv[])
                 //Echo back the message that came in 
                 if(value_read != 0)   
                 {   
-                     //set the string terminating NULL byte on the end  
-                    //of the data read  
-                    buffer[value_read] = '\0';   
-                    send(sd , buffer , strlen(buffer) , 0 );  
-
-                    
-
-
-
-
-
-                    /* code here.......*/
-
-
-
-
-
-
-
-
-
+                    char *index=(char *)malloc(1025*sizeof(char));
+                    strcpy(in,buffer);
+                    memset(buffer,0,1025);
+                    int size=search_index(index);
+                    if(size<1024) index[size]='\0';
+                    printf("USER ID %d Client number %d Message Received %s\n",user_id[i],i,index );
+                    //String before # indicates  the function that the client wants to use
+                    char* temp=strtok(index,"#"); 
+                    char fun= (*temp);
+                    if (t=='L')
+                    {
+                    	temp=strtok(NULL,"#");
+                    	int ind=auth(temp);
+                    	if(ind!=0){
+                    		int b=0;
+                    		for (int j = 0; j < 5; ++j)
+                    		{
+                    			if (user_id[j]==ind)
+                    			{
+                    				b=1;
+                    				break;
+                    			}
+                    		}
+                    		if (b==1)
+                    		{
+                    			char *message2="Already Logged In";
+                    			write(sd,message2,strlen(message2));
+                    			getpeername(sd,(struct sockaddr*)&client_address,(socklen_t*)&addr_length);
+                    			printf("Host has been disconnected, IP address : %s , Port number : %d , Client number : %d \n",inet_ntoa(client_address.sin_addr),ntohs(client_address.sin_port),i);
+                    			close(sd);
+                    			client_socket[i]=0;
+                    			count_clients--;
+                    		}
+                    		else 
+                    		{
+                    			user_id[i]=ind;
+                    			char message2[1024];
+                    			memset(message2,0,1024);
+                    			sprintf(message2,"User_ID : %d Logged In",ind);
+                    			write(sd,message2,strlen(message2));
+                    		}
+                    	}
+                    	else 
+                    	{
+                    		char *message2="Invalid username or password";
+                    		write(sd,message2,strlen(message2));
+                    	}
+                    	break;
+                    }
+                    if (t=='B')
+                    {
+                    	temp=strtok(NULL,"#");  
+                        buy_order(temp,user_id[i]); 
+                        char *message2="Message Received\n";
+                        write(sd , message2 , strlen(message2) );     
+                        break;
+                    }
+                    if (t=='S')
+                    {
+                    	temp=strtok(NULL,"#");  
+                        sell_order(temp,user_id[i]); 
+                        char *message2="Message Received\n";
+                        write(sd , message2 , strlen(message2) );     
+                        break;
+                    }
+                    if(t=='O')
+                    {
+                    	orders_st(sd);
+                    	break;
+                    }
+                    if(t=='T') 
+                    {
+                    	trade_st(sd,user_id[i]);
+                    	break;
+                    }
 
                 }   
                 else //if value_read==0 then it implies that the client has sent 0 bytes of dates which means that the client wants to terminate the connection
