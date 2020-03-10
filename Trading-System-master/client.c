@@ -247,7 +247,7 @@ void request_handler(int sock)
 	printf("To sell press 2\n");
 	printf("To view order status press 3\n");
 	printf("To view your trade status press 4\n");
-	printf("To exit press ctlr C\n");
+	printf("To exit press 5\n");
 	int n = 0;
 	while(1)
 	{
@@ -263,6 +263,7 @@ void request_handler(int sock)
 					break;
 			case 4: trade_status(sock);
 					break;
+			case 5: return;
 			default:printf("enter valid option \n"); 
 		}
 	}	

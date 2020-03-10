@@ -9,7 +9,7 @@
 #include <netinet/in.h>  
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros 
 
-#define INT_MAX 9999
+#define INT_MAX 2147483647
 
 typedef struct request
 {
@@ -81,10 +81,9 @@ void match_trade()
         if(buy[i].item_code==-1)
             break;
 
-        printf("hey");
         request* min_sell=trade_helper();   
         int itemcode = buy[i].item_code;
-        printf("babes");
+        
         int flag=1;
         if(min_sell[itemcode-1].quantity==0)
         {
@@ -232,7 +231,7 @@ void trade_st(int st, int user_id)
     while(i<index_tr)
     {
         memset(temp,0,512);
-        sprintf(temp,"buy id %d:sell id %d:quantity %d:price %d\n",trade[i].buy_id,trade[i].sell_id,trade[i].quantity,trade[i].price);
+        sprintf(temp,"buy id :%d  sell id :%d item :%d quantity :%d price :%d\n",trade[i].buy_id,trade[i].sell_id,trade[i].item_code,trade[i].quantity,trade[i].price);
         strcat(buffer,temp);
         i++;
     }
@@ -251,10 +250,11 @@ void sell_order(char * temp, int user_id)
     int i=0;
     while(1)
     {
-        if(sell[i].user_id==-1)
+        if(sell[i].item_code==-1)
             break;
         i++;
     }
+    
     sell[i].item_code=itemcode;
     sell[i].quantity=quantity;
     sell[i].price=price;
@@ -305,7 +305,7 @@ int search_index(char buffer[])
   
 int auth(char* logindetails)
 {
-    //The login details are stored in a file login.txt line by line.So we are given logindetails in format username:passwd we open file and
+    //The login details are stored in a file login.txt line by line.So we are given logindetails in format username:password we open file and
     //each line by comparing with logindetails and simultaneoulsy increment the index i for each mismatch.When match found retrn the index i
 
     FILE *fp=fopen("login.txt","r");
@@ -572,9 +572,7 @@ int main(int argc , char *argv[])
                         
                     	temp=strtok(NULL,"#");  
                         buy_order(temp,user_id[i]); 
-                        printf("hello\n");
                         match_trade();
-                        printf("hello\n");
                         char *message2="Message Received\n";
                         write(sd , message2 , strlen(message2) );     
                         break;
@@ -584,8 +582,8 @@ int main(int argc , char *argv[])
                     	temp=strtok(NULL,"#");  
                         sell_order(temp,user_id[i]); 
                         match_trade();
-                        char *message2="Message Received\n";
-                        write(sd , message2 , strlen(message2) );     
+                        char *message3="Message Received\n";
+                        write(sd , message3 , strlen(message3) );     
                         break;
                     }
                     if(t=='O')
