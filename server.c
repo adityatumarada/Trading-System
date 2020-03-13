@@ -233,6 +233,8 @@ void orders_st(int st)
     int n = write(st,buffer,sizeof(buffer));
 }
 
+// function send the matched trade status information to client.
+// Reads data from trade array and sends to client
 void trade_st(int st, int user_id)
 {
     int i=0;
@@ -250,6 +252,7 @@ void trade_st(int st, int user_id)
 
 }
 
+//reads the data from client and adds the details to sell array.
 void sell_order(char * temp, int user_id)
 {
     char *t=strtok(temp,"-");
@@ -272,6 +275,7 @@ void sell_order(char * temp, int user_id)
     sell[i].user_id=user_id;
 }
 
+//reads the data from client and adds the details to buy array. 
 void buy_order(char * temp, int user_id)
 {
     char *t=strtok(temp,"-");
@@ -309,9 +313,8 @@ int search_index(char buffer[])
   
 int auth(char* logindetails)
 {
-    //The login details are stored in a file login.txt line by line.So we are given logindetails in format username:password we open file and
-    //each line by comparing with logindetails and simultaneoulsy increment the index i for each mismatch.When match found retrn the index i
-
+    //login details are stored in a file login.txt line by line.
+    // login details are stored in format username-password 
     FILE *fp=fopen("login.txt","r");
     char *dataToBeRead; dataToBeRead = (char*) malloc(64*sizeof(char));
     int i=0;int f=0;
@@ -334,8 +337,9 @@ int auth(char* logindetails)
 
     return 0;
 }   
+
 int main(int argc , char *argv[])   
-{   
+{   //initialising buy sell and trade arrays
      for(int i=0;i<1024;i++)
         {
             buy[i].item_code=-1;
@@ -359,11 +363,12 @@ int main(int argc , char *argv[])
             trade[i].quantity=-1;
         }
 
+    //taking input parameters
     if(argc!=2){
         printf("Number of arguments should be 2\n");
         return 0;
     }
-    int PORT=atoi(argv[1]); //PORT here is the port number taken from the arguments 
+    int PORT=atoi(argv[1]);
     
     int opt = 1;   
     int head_socket,new_socket,addr_length;
@@ -375,13 +380,14 @@ int main(int argc , char *argv[])
     int count_clients=0;
     int activity,value_read,sd,max_sd,k;
     struct sockaddr_in server_address,client_address;   
-         
-    char buffer[1025];  //data buffer of 1K  
+    
+    //buffer to store data and communicate with client
+    char buffer[1025];   
          
     //set of socket descriptors  
     fd_set readfds;   
          
-    //a message  
+ 
     char *message = "Connection is Established\n";   
     //initialising user id's to 0
     int m=0;
@@ -390,13 +396,13 @@ int main(int argc , char *argv[])
         m++;
     }
      
-    //initialise all client_socket[] to 0 so not checked  
+    //initialise all client_sockets to 0  
     for (int i = 0; i < max_clients; i++)   
     {   
         client_socket[i] = 0;   
     }   
          
-    //create a head socket 
+    //creating a head socket 
     head_socket=socket(AF_INET,SOCK_STREAM,0); 
 
     if(head_socket == 0){ 
@@ -405,7 +411,6 @@ int main(int argc , char *argv[])
     }      
      
     //set head socket to allow multiple connections ,  
-    //this is just a good habit, it will work without this  
     if( setsockopt(head_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt,sizeof(opt)) < 0 )   
     {   
         perror("setsockopt");   
@@ -431,7 +436,7 @@ int main(int argc , char *argv[])
         exit(EXIT_FAILURE);   
     }   
          
-    //accept the incoming connection  
+    //accepting the incoming connection  
     addr_length = sizeof(server_address);           
     while(1)   
     {   
@@ -458,8 +463,7 @@ int main(int argc , char *argv[])
                 max_sd = sd;   
         }   
      
-        //wait for an activity on one of the sockets , timeout is NULL ,  
-        //so wait indefinitely  
+        //wait for an activity on one of the sockets, timeout is NULL, so wait indefinitely  
         activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);   
        
         if ((activity < 0) && (errno!=EINTR))   
@@ -467,8 +471,7 @@ int main(int argc , char *argv[])
             printf("select error");   
         }   
              
-        //If something happened on the head socket ,  
-        //then its an incoming connection  
+        //If something happened on the head socket, then its an incoming connection  
         if (FD_ISSET(head_socket, &readfds))   
         {   
             if ((new_socket = accept(head_socket,  
@@ -497,7 +500,6 @@ int main(int argc , char *argv[])
             //add new socket to array of sockets  
             for (int i = 0; i < max_clients; i++)   
             {   
-                //if position is empty  
                 if( client_socket[i] == 0 )   
                 {   
                     client_socket[i] = new_socket;   
@@ -516,10 +518,8 @@ int main(int argc , char *argv[])
                  
             if (FD_ISSET( sd , &readfds))   
             {   
-                //Check if it was for closing , and also read the  
                 //incoming message  
                 value_read=read(sd, buffer, 1024);
-                //Echo back the message that came in 
                 if(value_read != 0)   
                 {   
                     char *index=(char *)malloc(1025*sizeof(char));
@@ -528,9 +528,10 @@ int main(int argc , char *argv[])
                     int size=search_index(index);
                     if(size<1024) index[size]='\0';
                     printf("USER ID %d Client number %d Message Received %s\n",user_id[i],i,index );
-                    //String before # indicates  the function that the client wants to use
+                    //String before # indicates the function that the client wants to use
                     char* temp=strtok(index,"#"); 
                     char t= (*temp);
+                    //Login
                     if (t=='L')
                     {
                     	temp=strtok(NULL,"#");
@@ -571,6 +572,8 @@ int main(int argc , char *argv[])
                     	}
                     	break;
                     }
+                    //Buy Request
+                    //We check for trade after buy or sell request.
                     if (t=='B')
                     {
                         
@@ -581,6 +584,7 @@ int main(int argc , char *argv[])
                         write(sd , message2 , strlen(message2) );     
                         break;
                     }
+                    //Sell Request
                     if (t=='S')
                     {
                     	temp=strtok(NULL,"#");  
@@ -590,11 +594,13 @@ int main(int argc , char *argv[])
                         write(sd , message3 , strlen(message3) );     
                         break;
                     }
+                    //Order Status
                     if(t=='O')
                     {
                     	orders_st(sd);
                     	break;
                     }
+                    //Trade Status
                     if(t=='T') 
                     {
                     	trade_st(sd,user_id[i]);

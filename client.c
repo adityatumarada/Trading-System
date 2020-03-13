@@ -334,4 +334,3 @@ int main(int argc, char const *argv[])
 	request_handler(sock); //request_handler takes care of user requests
     return 0; 
 }
-
